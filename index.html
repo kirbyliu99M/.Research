@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>問卷連結</title>
+<style>
+  :root { --bg:#ffffff; --fg:#222222; --link:#0b57d0; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#151515; --fg:#e6e6e6; --link:#8ab4f8; } }
+  body { margin:0; padding:16px; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:var(--bg); color:var(--fg); font-family:system-ui,"Noto Sans TC","PingFang TC",sans-serif; }
+  .box { max-width:420px; text-align:center; line-height:1.7; }
+  a { color:var(--link); }
+</style>
+</head>
+<body>
+<div class="box">
+  <p>正在前往問卷……</p>
+  <p id="fallback" hidden>若沒有自動跳轉，請<a id="go" href="#">點此繼續</a>。</p>
+  <noscript><p>請開啟瀏覽器的 JavaScript 功能後重新整理頁面。</p></noscript>
+</div>
+<script>
+(function () {
+  // ===== 只需修改這裡：四個版本的問卷網址 =====
+  // A＝一般會員；B＝會員＋首購 30% 折扣
+  // 1＝PSE 低機敏區塊先；2＝高機敏區塊先
+  // 前測與正式施測共用同一組表單，資料由研究者自行區分。
+  var ARMS = [
+    { id: "A1", url: "https://forms.gle/EU5Tp4GkbNG5aQiw8" },
+    { id: "A2", url: "https://forms.gle/ZH3SAWgNZEhre3v79" },
+    { id: "B1", url: "https://forms.gle/1RVSyJoyWXGeY8ud9" },
+    { id: "B2", url: "https://forms.gle/ZdnfRCtEg2ZrCX5T9" }
+  ];
+  var KEY = "survey_arm_v2";   // 改版需要重新分派時，把 v2 改成 v3
+
+  var arm = null;
+  // 同一瀏覽器重新整理或再次點連結時，維持原分派，避免同一人看到兩個版本
+  try {
+    var saved = window.localStorage.getItem(KEY);
+    for (var i = 0; i < ARMS.length; i++) { if (ARMS[i].id === saved) { arm = ARMS[i]; } }
+  } catch (e) { /* 無法使用 localStorage（私密模式等）時直接隨機分派 */ }
+
+  if (!arm) {
+    var r;
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint32Array(1); window.crypto.getRandomValues(buf); r = buf[0];
+    } else {
+      r = Math.floor(Math.random() * 4294967296);
+    }
+    arm = ARMS[r % ARMS.length];   // 2^32 可被 4 整除，四版機率完全相等
+    try { window.localStorage.setItem(KEY, arm.id); } catch (e) {}
+  }
+
+  document.getElementById("go").href = arm.url;
+  document.getElementById("fallback").hidden = false;
+  window.location.replace(arm.url);
+})();
+</script>
+</body>
+</html>
