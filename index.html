@@ -2,24 +2,92 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0f1a2d">
 <title>問卷連結</title>
+<script>document.documentElement.className = "js";</script>
 <style>
-  :root { --bg:#ffffff; --fg:#222222; --link:#0b57d0; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#151515; --fg:#e6e6e6; --link:#8ab4f8; } }
-  body { margin:0; padding:16px; min-height:100vh; display:flex; align-items:center; justify-content:center;
-         background:var(--bg); color:var(--fg); font-family:system-ui,"Noto Sans TC","PingFang TC",sans-serif; }
-  .box { max-width:420px; text-align:center; line-height:1.7; }
-  a { color:var(--link); }
+  :root {
+    --d: clamp(120px, 34vmin, 220px);   /* 校徽圓盤直徑 */
+    --ease: cubic-bezier(.22, 1, .36, 1);
+  }
+  html { background: #0f1a2d; }
+  body {
+    margin: 0; min-height: 100vh; min-height: 100dvh; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; position: relative;
+    color: rgba(222, 232, 247, .78);
+    font-family: system-ui, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background:
+      radial-gradient(ellipse 70% 90% at 50% 50%, rgba(48, 78, 134, .42), transparent 72%),
+      radial-gradient(ellipse 45% 60% at 90% 62%, rgba(26, 66, 76, .38), transparent 70%),
+      linear-gradient(180deg, #0d1729 0%, #111d33 50%, #0c1525 100%);
+  }
+
+  /* 校徽與同心圓：以圓盤直徑 --d 為基準等比縮放，手機與電腦構圖一致 */
+  .stage { position: relative; width: var(--d); height: var(--d); will-change: transform, opacity; }
+  .js .stage { opacity: 0; }
+  .ring {
+    position: absolute; border-radius: 50%;
+    inset: calc(var(--d) * (1 - var(--s)) / 2);
+    border: 1px solid rgba(130, 168, 235, var(--o));
+  }
+  .r1 { --s: 1.3;  --o: .34; background: rgba(70, 104, 170, .30); box-shadow: 0 0 70px rgba(80, 130, 225, .40); }
+  .r2 { --s: 1.78; --o: .20; }
+  .r3 { --s: 2.28; --o: .13; }
+  .r4 { --s: 2.85; --o: .07; }
+  .disc {
+    position: absolute; inset: 0; border-radius: 50%; background: #fff;
+    padding: 8.5%; box-sizing: border-box;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .35), 0 10px 40px rgba(0, 0, 0, .35);
+  }
+  .disc img { display: block; width: 100%; height: 100%; }
+
+  .msg {
+    position: absolute; left: 0; right: 0; text-align: center; line-height: 1.8;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 9vh);
+    font-size: 14px; letter-spacing: .12em; padding: 0 16px;
+  }
+  .js .msg .wait, .js .msg .fallback { opacity: 0; }
+  .msg .fallback { display: block; margin-top: 6px; font-size: 13px; letter-spacing: .04em; pointer-events: none; }
+  .msg .fallback.show { pointer-events: auto; }
+  .msg a { color: #8ab4f8; }
+
+  /* 進場：校徽放大淡入，同心圓由內向外依序展開 */
+  .go .disc { animation: discIn 1s var(--ease) both; }
+  .go .ring { animation: ringIn 1.3s var(--ease) both; }
+  .go .r1 { animation-delay: .05s; }
+  .go .r2 { animation-delay: .17s; }
+  .go .r3 { animation-delay: .29s; }
+  .go .r4 { animation-delay: .41s; }
+  .go .stage { opacity: 1; transition: opacity .3s ease; }
+  .go .wait { animation: textIn .8s ease .7s both; }
+  .fallback.show { animation: textIn .6s ease both; }
+  @keyframes discIn { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
+  @keyframes ringIn { from { opacity: 0; transform: scale(.72); } to { opacity: 1; transform: scale(1); } }
+  @keyframes textIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* 出場：校徽略放大並淡出，再跳轉 */
+  .out .stage { opacity: 0; transform: scale(1.07); transition: opacity .38s ease-in, transform .5s ease-in; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .go .disc, .go .ring, .go .wait, .fallback.show { animation: none; }
+    .js .msg .wait, .js .msg .fallback.show { opacity: 1; }
+    .out .stage { transform: none; transition: none; }
+  }
 </style>
 </head>
 <body>
-<div class="box">
-  <p>正在前往問卷……</p>
-  <p id="fallback" hidden>若沒有自動跳轉，請<a id="go" href="#">點此繼續</a>。</p>
-  <noscript><p>請開啟瀏覽器的 JavaScript 功能後重新整理頁面。</p></noscript>
+<div class="stage" aria-hidden="true">
+  <div class="ring r4"></div><div class="ring r3"></div><div class="ring r2"></div><div class="ring r1"></div>
+  <div class="disc"><img id="logo" src="logo.png" alt="" width="420" height="420" decoding="async"></div>
+</div>
+<div class="msg" role="status">
+  <span class="wait">正在前往問卷……</span>
+  <span class="fallback" id="fallback">若沒有自動跳轉，請<a id="go" href="#">點此繼續</a>。</span>
+  <noscript>請開啟瀏覽器的 JavaScript 功能後重新整理頁面。</noscript>
 </div>
 <script>
 (function () {
@@ -34,6 +102,8 @@
     { id: "B2", url: "https://forms.gle/ZdnfRCtEg2ZrCX5T9" }
   ];
   var KEY = "survey_arm_v2";   // 改版需要重新分派時，把 v2 改成 v3
+  var HOLD = 1400;             // 進場動畫完成後停留的毫秒數
+  var FADE = 420;              // 出場動畫毫秒數
 
   var arm = null;
   // 同一瀏覽器重新整理或再次點連結時，維持原分派，避免同一人看到兩個版本
@@ -53,9 +123,38 @@
     try { window.localStorage.setItem(KEY, arm.id); } catch (e) {}
   }
 
+  // 分派在頁面一開始就完成並記住；之後的動畫只影響呈現，不影響分派
+  var body = document.body;
+  var fallback = document.getElementById("fallback");
   document.getElementById("go").href = arm.url;
-  document.getElementById("fallback").hidden = false;
-  window.location.replace(arm.url);
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var started = false, left = false;
+
+  function showFallback() { fallback.classList.add("show"); }
+  function leave() { if (left) return; left = true; window.location.replace(arm.url); }
+
+  function start() {
+    if (started) return; started = true;
+    body.classList.add("go");
+    if (reduce) { showFallback(); setTimeout(leave, 350); return; }
+    setTimeout(function () {
+      body.classList.add("out");
+      setTimeout(leave, FADE);
+    }, 1300 + HOLD);                // 進場約 1.3 秒 + 停留
+    setTimeout(showFallback, 1300 + HOLD + FADE + 3000);   // 跳轉後 3 秒仍在此頁才顯示備援連結
+  }
+
+  // 校徽解碼完成才開始動畫，避免動畫中途才出現圖片；最多等 1 秒
+  var img = document.getElementById("logo");
+  var go = function () { start(); };
+  if (img.decode) { img.decode().then(go, go); } else { img.onload = img.onerror = go; }
+  setTimeout(go, 1000);
+
+  // 從瀏覽器快取（返回鍵）還原此頁時，恢復畫面並提供備援連結
+  window.addEventListener("pageshow", function (ev) {
+    if (ev.persisted) { body.classList.remove("out"); left = false; showFallback(); }
+  });
 })();
 </script>
 </body>
